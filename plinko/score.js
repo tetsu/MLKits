@@ -19,18 +19,23 @@ function runAnalysis() {
 
   _.range(1, 15).forEach(k => {
     const accuracy = _.chain(testSet)
-      .filter(testPoint => knn(trainingSet, testPoint[0], k) === testPoint[3])
+      .filter(testPoint => knn(trainingSet, _.initial(testPoint), k) === testPoint[3])
       .size()
       .divide(testSetSize)
       .value();
 
-    console.log("k", k, " Accuracy: ", accuracy + "%");
+    console.log("For k of ", k, " Accuracy: ", accuracy + "%");
   })
 }
 
-function knn(data, pointB, k) {
+function knn(data, point, k) {
   return _.chain(data)
-    .map(row => [distance(row[0], pointB), row[3]])
+    .map(row => {
+      return [
+        distance(_.initial(row), point),
+        _.last(row)
+      ]
+    })
     .sortBy(row => row[0])
     .slice(0, k)
     .countBy(row => row[1])
@@ -42,12 +47,19 @@ function knn(data, pointB, k) {
     .value();
 }
 
+
 function distance(pointA, pointB) {
-  return Math.abs(pointA - pointB);
+  return _.chain(pointA)
+    .zip(pointB)
+    .map((a, b) => (a - b) ** 2)
+    .sum()
+    .value() ** 0.5;
 }
+
 
 function splitDataset(data, testCount) {
   const shuffled = _.shuffle(data);
+
   const testSet = _.slice(shuffled, 0, testCount);
   const trainingSet = _.slice(shuffled, testCount);
 
