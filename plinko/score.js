@@ -8,14 +8,7 @@ function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
 
 function runAnalysis() {
   let successCount = 0;
-  const [testSet, trainingSet] = splitDataset(outputs, testSetSize);
-
-  // for (let i=0; i<testSet.length; i++) {
-  //   const bucket = knn(trainingSet, testSet[i][0]);
-  //   console.log(bucket, testSet[i][3]);
-  //   if (bucket === testSet[i][3]) successCount++;
-  // }
-  // const accuracy = successCount / testSetSize * 100;
+  const [testSet, trainingSet] = splitDataset(minMax(outputs, 3), testSetSize);
 
   _.range(1, 15).forEach(k => {
     const accuracy = _.chain(testSet)
@@ -64,4 +57,20 @@ function splitDataset(data, testCount) {
   const trainingSet = _.slice(shuffled, testCount);
 
   return [testSet, trainingSet];
+}
+
+
+function minMax(data, featureCount) {
+  const clonedData = _.cloneDeep(data);
+
+  for (let i=0; i<featureCount; i++) {
+    const column = clonedData.map(row => row[i]);
+    const min = _.min(column);
+    const max = _.max(column);
+
+    for (let j=0; j<clonedData.length; j++) {
+      clonedData[j][i] = (clonedData[j][i] - min) / (max - min);
+    }
+  }
+  return clonedData;
 }
