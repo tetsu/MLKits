@@ -1,23 +1,28 @@
 const outputs = [];
 // const k = 300;
-const testSetSize = 50;
+// const testSetSize = 50;
 
 function onScoreUpdate(dropPosition, bounciness, size, bucketLabel) {
   outputs.push([dropPosition, bounciness, size, bucketLabel]);
 }
 
 function runAnalysis() {
-  let successCount = 0;
-  const [testSet, trainingSet] = splitDataset(minMax(outputs, 3), testSetSize);
+  const testSetSize = 100;
+  const k = 10;
+  // let successCount = 0;
 
-  _.range(1, 15).forEach(k => {
+  _.range(0, 3).forEach( feature => {
+    const data = _.map(outputs, row => [row[feature], _.last(row)]);
+    const [testSet, trainingSet] = splitDataset(minMax(data, 1), testSetSize);
     const accuracy = _.chain(testSet)
-      .filter(testPoint => knn(trainingSet, _.initial(testPoint), k) === testPoint[3])
+      .filter(
+        testPoint => knn(trainingSet, _.initial(testPoint), k) === _.last(testPoint)
+      )
       .size()
       .divide(testSetSize)
       .value();
 
-    console.log("For k of ", k, " Accuracy: ", accuracy + "%");
+    console.log("For feature of ", feature, " Accuracy: ", accuracy + "%");
   })
 }
 
