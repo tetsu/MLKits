@@ -39,7 +39,6 @@ class LinearRegression {
         testFeatures = this.processFeatures(testFeatures);
         testLabels = tf.tensor(testLabels);
 
-        // testFeatures = tf.ones([testFeatures.shape[0], 1]).concat(testFeatures, 1);
         const predictions = testFeatures.matMul(this.weights);
         
         const res = testLabels.sub(predictions).pow(2).sum().get();
@@ -50,22 +49,24 @@ class LinearRegression {
 
     processFeatures(features) {
         features = tf.tensor(features);
-        features = this.standardize(features);
         features = tf.ones([features.shape[0], 1]).concat(features, 1);
+
+        if (this.mean && this.variance) {
+            features = features.sub(this.mean).div(this.variance.pow(0.5));
+        } else {
+            features = this.standardize(features);
+        }
         
         return features;
     }
 
     standardize(features) {
-        if(this.mean && this.variance) {
-            return features.sub(this.variance).div(this.variance.pow(0.5));
-        } else {
-            const {mean, variance} = tf.moments(features, 0);
-            this.mean = mean;
-            this.variance = variance;
+        const { mean, variance } = tf.moments(features, 0);
 
-            return features.sub(mean).div(variance.pow(0.5));
-        }
+        this.mean = mean;
+        this.variance = variance;
+
+        return features.sub(mean).div(variance.pow(0.5));
     }
 
     recordMSE() {
